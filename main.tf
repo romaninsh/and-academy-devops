@@ -45,6 +45,10 @@ resource "aws_alb" "main" {
   security_groups = [aws_security_group.main.id]
 }
 
+output "url" {
+  value = "http://${aws_alb.main.dns_name}/"
+}
+
 resource "aws_alb_target_group" "main" {
   name        = "academy"
   port        = 80
