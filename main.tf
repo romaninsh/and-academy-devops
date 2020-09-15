@@ -127,7 +127,9 @@ resource "aws_security_group" "main" {
 
 
 
-
+resource "aws_ecr_repository" "main" {
+  name = "romans-academy"
+}
 
 
 
