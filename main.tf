@@ -95,23 +95,23 @@ resource "aws_security_group" "main" {
   vpc_id = module.vpc.vpc_id
 
   ingress {
-    protocol    = "tcp"
-    from_port   = 80
-    to_port     = 80
+    protocol = "tcp"
+    from_port = 80
+    to_port = 80
     cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
-    protocol    = "tcp"
-    from_port   = 443
-    to_port     = 443
+    protocol = "tcp"
+    from_port = 443
+    to_port = 443
     cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
@@ -131,25 +131,32 @@ resource "aws_iam_user" "cf-deployer" {
 }
 
 resource "aws_iam_policy" "cf-deployer" {
-  policy = <<EOF
-{
+  policy = jsonencode({
   "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "ecr:GetAuthorizationToken",
-        "ecr:BatchCheckLayerAvailability",
-        "ecr:GetDownloadUrlForLayer",
-        "ecr:BatchGetImage",
-        "logs:CreateLogStream",
-        "logs:PutLogEvents"
-      ],
-      "Resource": "*"
-    }
-  ]
-}
-EOF
+    "Statement": [
+      {
+        Effect: "Allow",
+        Action: [
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:BatchGetImage",
+
+          "ecr:InitiateLayerUpload",
+          "ecr:UploadLayerPart",
+          "ecr:CompleteLayerUpload",
+          "ecr:PutImage",
+        ],
+        Resource: [ aws_ecr_repository.main.arn ]
+      },
+      {
+        Effect: "Allow",
+        Action: [
+          "ecr:GetAuthorizationToken",
+        ],
+        Resource: "*"
+      },
+    ]
+  })
 }
 
 resource "aws_iam_user_policy_attachment" "main" {
