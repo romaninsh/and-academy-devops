@@ -122,14 +122,55 @@ resource "aws_security_group" "main" {
 
 
 
-
-
-
-
-
 resource "aws_ecr_repository" "main" {
   name = "romans-academy"
 }
+
+resource "aws_iam_user" "cf-deployer" {
+  name = "cf-deployer"
+}
+
+resource "aws_iam_policy" "cf-deployer" {
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ecr:GetAuthorizationToken",
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:GetDownloadUrlForLayer",
+        "ecr:BatchGetImage",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_user_policy_attachment" "main" {
+  policy_arn = aws_iam_policy.main.arn
+  user = aws_iam_user.cf-deployer.name
+}
+
+resource "aws_iam_access_key" "cf-deployer" {
+  user = aws_iam_user.cf-deployer.name
+}
+
+output "AWS_ACCESS_KEY_ID" {
+  value = aws_iam_access_key.cf-deployer.id
+}
+
+output "AWS_SECRET_ACCESS_KEY" {
+  value = aws_iam_access_key.cf-deployer.secret
+}
+
+
+
 
 
 
@@ -146,7 +187,7 @@ resource "aws_ecs_task_definition" "service" {
 
   container_definitions = jsonencode([{
     name: "first",
-    image: "tutum/hello-world",
+    image: aws_ecr_repository.main.repository_url,
     cpu: 256,
     memory: 512,
     essential: true,
